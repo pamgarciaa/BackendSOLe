@@ -1,0 +1,25 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",             
+    "module": "NodeNext",           
+    "moduleResolution": "NodeNext",
+    "esModuleInterop": true,        
+    "skipLibCheck": true,           
+    "forceConsistentCasingInFileNames": true,
+    "isolatedModules": true,
+
+    /* Rutas */
+    "baseUrl": ".",                 
+    "paths": {
+      "@/*": ["src/*"]              
+    },
+    "rootDir": "./src",             
+    "outDir": "./dist",
+
+    /* Estrictez */
+    "strict": true,                
+    "sourceMap": true
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules"]
+}
