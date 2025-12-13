@@ -42,14 +42,28 @@ Este backend implementa todas las funcionalidades esenciales para una plataforma
 
 ## ⚙️ Configuración y Ejecución
 
-### **1. Requisitos**
+### ** Requisitos**
 * Node.js (versión 18.x o superior).
 * Una instancia de MongoDB.
 
-### **2. Instalación**
+### ** Instalación**
 Clona el repositorio e instala las dependencias:
 
 ```bash
 git clone <repository_url>
 cd BackendSOLe
 npm install
+cp .env.example .env
+```
+### **PASO 3: Confirmar en tu Terminal**
+
+Asegúrate de que tu `.env.example` esté en Git y que tu `.env` siga siendo ignorado:
+
+1.  Añade y commitea el nuevo archivo:
+    ```bash
+    git add .env.example
+    git commit -m "feat: Add .env.example template"
+    git push
+    ```
+
+
