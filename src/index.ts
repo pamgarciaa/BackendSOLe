@@ -12,9 +12,11 @@ import loggerMiddleware from "../src/middlewares/logger.middleware";
 import authRoutes from "../src/routes/auth.route";
 import blogRoutes from "../src/routes/blog.route";
 import productRoutes from "../src/routes/product.route";
-import kitRoutes from "../src/routes/kit.route";
+import kitRoutes from "../src/routes/kit.route"
 import orderRoutes from "../src/routes/order.route";
 import cartRoutes from "../src/routes/cart.route";
+import kitRequestRoutes from "../src/routes/kitrequest.route"
+
 
 dotenv.config();
 
@@ -40,6 +42,8 @@ app.use("/api/products", productRoutes);
 app.use("/api/kits", kitRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/cart", cartRoutes);
+app.use("/api/kitrequests", kitRequestRoutes);
+
 
 app.all(/(.*)/, (req: Request, res: Response, next: NextFunction) => {
     next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
