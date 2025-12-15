@@ -11,7 +11,7 @@ export const requestKitInfoController = async (
         const { name, email, kitName, message } = req.body;
 
         if (!name || !email) {
-            return next(new AppError("Nombre y email son obligatorios", 400));
+            return next(new AppError("Name and email are required", 400));
         }
 
         const newRequest = await kitService.createKitRequest({
@@ -23,7 +23,7 @@ export const requestKitInfoController = async (
 
         res.status(201).json({
             status: "success",
-            message: "Solicitud enviada correctamente",
+            message: "Request sent successfully",
             data: { request: newRequest },
         });
     } catch (error) {

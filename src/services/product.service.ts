@@ -24,7 +24,7 @@ const updateProduct = async (
     if (!product) throw new AppError("Product not found", 404);
 
     if (newImageFilename) {
-        if (product.image) {
+        if (product.image && !product.image.startsWith("http")) {
             const oldPath = "uploads/" + product.image;
             if (await fs.pathExists(oldPath)) {
                 await fs.remove(oldPath);
@@ -44,7 +44,7 @@ const deleteProduct = async (id: string) => {
 
     if (!product) throw new AppError("Product not found", 404);
 
-    if (product.image) {
+    if (product.image && !product.image.startsWith("http")) {
         const imagePath = "uploads/" + product.image;
         if (await fs.pathExists(imagePath)) {
             await fs.remove(imagePath);

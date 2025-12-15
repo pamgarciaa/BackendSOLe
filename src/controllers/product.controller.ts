@@ -11,11 +11,6 @@ interface AuthRequest extends Request {
     file?: Express.Multer.File;
 }
 
-interface IProductWithLevel {
-    level: number;
-    [key: string]: any;
-}
-
 // --- CREATE PRODUCT ---
 export const createProductController = async (
     req: Request,
@@ -33,7 +28,6 @@ export const createProductController = async (
             stock,
             category,
             features,
-            level,
             isDigital,
         } = req.body;
 
@@ -65,9 +59,8 @@ export const createProductController = async (
             stock,
             category,
             features: parsedFeatures,
-            level: level ? Number(level) : undefined,
             isDigital: isDigital === "true" || isDigital === true,
-            image: uploadedImageUrl, // Guardamos la URL de Firebase
+            image: uploadedImageUrl,
             createdBy: authReq.user._id as any,
         };
 
@@ -92,36 +85,12 @@ export const getAllProductsController = async (
     next: NextFunction
 ) => {
     try {
-        const filter = { category: { $ne: "kit" } };
-        const products = await productService.getAllProducts(filter);
+        const products = await productService.getAllProducts({});
 
         res.status(200).json({
             status: "success",
             results: products.length,
             data: { products },
-        });
-    } catch (error) {
-        next(error);
-    }
-};
-
-// --- GET ALL KITS ---
-export const getAllKitsController = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-) => {
-    try {
-        const filter = { category: "kit" };
-
-        const kits = (await productService.getAllProducts(filter)) as IProductWithLevel[];
-
-        kits.sort((a, b) => (a.level || 0) - (b.level || 0));
-
-        res.status(200).json({
-            status: "success",
-            results: kits.length,
-            data: { kits },
         });
     } catch (error) {
         next(error);
@@ -171,7 +140,6 @@ export const deleteProductController = async (
     next: NextFunction
 ) => {
     try {
-
         await productService.deleteProduct(req.params.id);
 
         res.status(200).json({

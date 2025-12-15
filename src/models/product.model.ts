@@ -8,7 +8,6 @@ export interface IProduct extends Document {
     category: string;
     image: string;
     features: string[];
-    level?: number;
     isDigital: boolean;
     createdBy?: mongoose.Types.ObjectId;
     createdAt: Date;
@@ -25,7 +24,6 @@ const productSchema = new Schema<IProduct>(
         image: { type: String, required: true },
 
         features: [{ type: String }],
-        level: { type: Number },
         isDigital: { type: Boolean, default: false },
 
         createdBy: {

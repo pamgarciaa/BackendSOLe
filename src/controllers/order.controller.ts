@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import orderService from "@/services/order.service";
 import AppError from "@/utils/appError.util";
+
 interface AuthRequest extends Request {
     user?: {
         _id: string;
@@ -8,7 +9,7 @@ interface AuthRequest extends Request {
     };
 }
 
-// --- GET MY ORDERS (Usuario logueado) ---
+// --- GET MY ORDERS  ---
 export const getMyOrdersController = async (
     req: Request,
     res: Response,
