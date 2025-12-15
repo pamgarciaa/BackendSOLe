@@ -1,88 +1,69 @@
 # BackendSOLe
-BackendSOLe es el trabajo final de un proyecto de e-commerce. Se trata de un potente backend construido con Node.js y TypeScript, utilizando Express para el enrutamiento y MongoDB (a través de Mongoose) para la persistencia de datos.
+
+BackendSOLe es el núcleo backend para una plataforma de e-commerce y gestión de contenido (CMS) enfocada en productos y kits holísticos. Está construido con una arquitectura robusta utilizando **Node.js**, **TypeScript**, **Express** y **MongoDB**.
 
 ## 🚀 Características Principales
 
-Este backend implementa todas las funcionalidades esenciales para una plataforma de comercio electrónico y un sistema de gestión de contenido (CMS):
+Este backend implementa funcionalidades avanzadas para comercio electrónico, gestión de usuarios y almacenamiento en la nube:
 
-### **Autenticación y Usuarios**
-* Registro de usuarios con cifrado de contraseñas utilizando `bcrypt`.
-* Login y Logout con gestión de sesión a través de JWT almacenado en cookies HTTP-only.
-* Funcionalidades de "Olvidé mi Contraseña" y "Restablecer Contraseña" mediante un PIN temporal de 6 dígitos enviado por correo electrónico.
-* Actualización de perfil y cambio de contraseña para usuarios autenticados.
+### **🔐 Autenticación y Seguridad**
+* **Registro y Login:** Autenticación segura con hash de contraseñas (`bcrypt`) y gestión de sesiones mediante **JWT (JSON Web Tokens)** almacenados en cookies HTTP-only.
+* **Recuperación de Contraseña:** Sistema de "Olvidé mi contraseña" mediante PIN temporal enviado por correo electrónico.
+* **Roles (ACL):** Sistema de permisos con tres roles: `user`, `moderator`, y `admin`.
 
-### **Roles y Autorización (ACL)**
-* Manejo de tres roles: `user`, `moderator`, y `admin`.
-* Middleware de protección de rutas por rol (`checkRole`) para restringir el acceso a funcionalidades sensibles como el CRUD de productos y blogs.
+### **☁️ Gestión de Archivos (Cloud Storage)**
+* **Firebase Storage:** Integración completa para la subida y gestión de imágenes en la nube.
+* **Soporte Multimedia:** Carga de imágenes de perfil, portadas de productos y artículos de blog a través de `Multer` con subida directa a Firebase.
 
-### **Gestión de Productos y Blog (CMS)**
-* API RESTful completa (CRUD) para Productos y Artículos de Blog, con rutas protegidas por rol.
-* Funcionalidad para obtener "Kits" (productos con `category: "kit"`) ordenados por nivel (`level`).
-* Manejo de carga de archivos (imágenes de productos, blog, perfil) con Multer y almacenamiento en la carpeta `/uploads`.
+### **🛒 E-commerce y Ventas**
+* **Carrito de Compras:** Lógica persistente para añadir items, modificar cantidades y vaciar el carrito.
+* **Checkout y Órdenes:** Proceso de compra que genera órdenes, calcula totales y envía un **resumen de compra por email** al usuario.
+* **Kits Especiales:** Funcionalidad para solicitar información sobre "Kits" personalizados (Lead Generation).
 
-### **Flujo de Compra (E-commerce)**
-* **Carrito de Compras:** Funcionalidades para añadir, obtener, y eliminar ítems del carrito.
-* **Checkout:** Proceso de finalización de compra que genera una `Order` con estado `pending` y vacía el carrito.
-* **Órdenes:** Rutas para obtener las órdenes del usuario logueado y listar todas las órdenes (solo para `admin`).
+### **📝 CMS (Gestión de Contenido)**
+* **Productos:** CRUD completo con categorización, control de stock y manejo de imágenes.
+* **Blog:** Sistema para crear, editar y eliminar artículos para la comunidad.
 
-## 🗺️ Rutas de API (Endpoints)
-
-El servidor base se ejecuta en el puerto especificado (por defecto `3000`) y todas las rutas principales tienen el prefijo `/api`.
-
-| Categoría | Ruta Base | Métodos Clave | Requisitos de Rol |
-| :--- | :--- | :--- | :--- |
-| **Autenticación** | `/api/users` | `POST /register`, `POST /login`, `POST /logout` | Público |
-| **Usuarios (Admin)** | `/api/users` | `GET /all`, `DELETE /:id` | Admin |
-| **Productos** | `/api/products` | `GET /` | Público |
-| **Productos (CRUD)** | `/api/products` | `POST /`, `PATCH /:id`, `DELETE /:id` | Admin, Moderator |
-| **Kits** | `/api/kits` | `GET /` | Público |
-| **Blog (CRUD)** | `/api/blogs` | `POST /`, `PATCH /:id`, `DELETE /:id` | Admin, Moderator |
-| **Carrito** | `/api/cart` | `POST /add`, `GET /`, `DELETE /:productId` | Autenticado (`protect`) |
-| **Checkout** | `/api/cart/checkout` | `POST /` | Autenticado (`protect`) |
-| **Órdenes** | `/api/orders` | `GET /myorders` | Autenticado (`protect`) |
-| **Órdenes (Admin)** | `/api/orders` | `GET /all` | Admin |
+### **📧 Notificaciones**
+* Envío automatizado de correos electrónicos (Nodemailer) para:
+    * Recuperación de contraseñas.
+    * Confirmación de pedidos.
+    * Confirmación de solicitudes de contacto (Kits).
+    * Alertas al administrador sobre nuevos leads.
 
 ## 🛠️ Tecnologías Utilizadas
 
-| Categoría | Tecnología | Versión Clave |
-|---|---|---|
-| **Lenguaje** | TypeScript | 5.9.3 |
-| **Runtime** | Node.js | >= 18.0.0 (Recomendado) |
-| **Framework** | Express.js | 5.2.1 |
-| **Base de Datos** | MongoDB (Mongoose) | 9.0.1 |
-| **Testing** | Jest, Supertest | 30.2.0, 7.1.4 |
-| **Transpilación/Ejecución** | tsx, ts-node, tsc-alias | 4.21.0, 10.9.2, 1.8.16 |
+| Categoría | Tecnología |
+|---|---|
+| **Lenguaje** | TypeScript 5.x |
+| **Runtime** | Node.js (Recomendado v18+) |
+| **Framework** | Express.js 5.x |
+| **Base de Datos** | MongoDB & Mongoose |
+| **Almacenamiento** | Firebase Storage (Google Cloud) |
+| **Emails** | Nodemailer |
+| **Testing** | Jest & Supertest |
 
-### **Dependencias Clave**
-`bcrypt`, `compression`, `cookie-parser`, `cors`, `dotenv`, `express`, `fs-extra`, `jsonwebtoken`, `mongoose`, `multer`, `nodemailer`.
+## ⚙️ Configuración y Variables de Entorno
 
-## 📁 Estructura de Carpetas
+Para ejecutar este proyecto, necesitas crear un archivo `.env` en la raíz con las siguientes variables.
 
-El código principal se encuentra en la carpeta `src` y sigue una arquitectura Model-Service-Controller (MSC), facilitando la navegación y el mantenimiento:
+```properties
+# --- Configuración del Servidor ---
+PORT=3000
+NODE_ENV=development
 
-| Carpeta | Propósito |
-| :--- | :--- |
-| `src/models` | Contiene los esquemas de Mongoose para la base de datos (Usuario, Producto, Orden, Carrito).|
-| `src/services` | Contiene la lógica de negocio pura, interactuando con la base de datos y aislando la complejidad.|
-| `src/controllers` | Funciones que reciben la solicitud (Request) y envían la respuesta (Response), actuando como intermediarios entre las rutas y los servicios.|
-| `src/routes` | Define los endpoints de la API (`/api/users`, `/api/products`, etc.) y dirige el tráfico a los controladores.|
-| `src/middlewares` | Lógica de autenticación (`protect`), autorización (`checkRole`) y manejo de archivos (`multer`).|
-| `src/utils` | Funciones de ayuda reutilizables (Manejo de errores `AppError`, JWT, Envío de correos).|
-| `src/__tests__` | Contiene los tests unitarios y de integración del proyecto. |
+# --- Base de Datos ---
+MONGO_URI=mongodb://localhost:27017/backendsole_db
 
-## ⚙️ Configuración y Ejecución
-Requisitos
-* Node.js (versión 18.x o superior).
-* Una instancia de MongoDB.
+# --- Seguridad (JWT) ---
+JWT_SECRET=tu_secreto_super_seguro_y_largo
 
-### **1. Instalación**
-Clona el repositorio e instala las dependencias:
+# --- Configuración de Correo (Nodemailer) ---
+EMAIL_USER=tu_email@gmail.com
+EMAIL_PASS=tu_contraseña_de_aplicacion
 
-```bash
-# 1. Clona el repositorio (si aún no lo has hecho)
-# git clone <URL_DEL_REPOSITORIO>
-# cd BackendSOLe 
-
-# 2. Instala todas las dependencias del proyecto
-npm install
-
+# --- Firebase Storage (Descargar JSON de Firebase Console) ---
+FIREBASE_PROJECT_ID=tu-project-id
+FIREBASE_CLIENT_EMAIL=firebase-adminsdk-xxx@tu-project.iam.gserviceaccount.com
+FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgk...\n-----END PRIVATE KEY-----\n"
+FIREBASE_STORAGE_BUCKET=tu-project.firebasestorage.app
