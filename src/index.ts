@@ -34,7 +34,6 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(loggerMiddleware);
 
-app.use("/uploads", express.static("uploads"));
 
 app.use("/api/users", authRoutes);
 app.use("/api/blogs", blogRoutes);

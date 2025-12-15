@@ -4,6 +4,7 @@ import authService from "@/services/auth.service";
 import generateToken from "@/utils/generateJwt.util";
 import AppError from "@/utils/appError.util";
 import { sendEmail } from "@/utils/email.util";
+import { uploadImageToFirebase, deleteImageFromFirebase } from "@/utils/firebaseStorage.util";
 
 interface IUserResponse {
     _id: string | Types.ObjectId;
@@ -28,11 +29,21 @@ export const registerController = async (
     res: Response,
     next: NextFunction
 ) => {
+    let uploadedImageUrl = "";
+
     try {
         const { username, name, lastName, email, password } = req.body;
 
         if (!username || !name || !lastName || !email || !password) {
             return next(new AppError("All fields are required", 400));
+        }
+
+        if ((req as AuthRequest).file) {
+            uploadedImageUrl = await uploadImageToFirebase(
+                (req as AuthRequest).file!,
+                "users",
+                username || "user"
+            );
         }
 
         const userData = {
@@ -41,7 +52,7 @@ export const registerController = async (
             lastName,
             email,
             password,
-            profilePicture: (req as AuthRequest).file ? (req as AuthRequest).file!.filename : undefined,
+            profilePicture: uploadedImageUrl || undefined,
         };
 
         const user = await authService.registerUser(userData);
@@ -51,6 +62,7 @@ export const registerController = async (
 
         sendTokenResponse(userObj as IUserResponse, 201, res);
     } catch (error) {
+        if (uploadedImageUrl) await deleteImageFromFirebase(uploadedImageUrl);
         next(error);
     }
 };
@@ -100,7 +112,15 @@ export const removeUserController = async (
     next: NextFunction
 ) => {
     try {
-        await authService.deleteUser(req.params.id);
+        const userId = req.params.id;
+
+        const user = await authService.getUserById(userId);
+
+        if (user && user.profilePicture && user.profilePicture.includes("storage.googleapis.com")) {
+            await deleteImageFromFirebase(user.profilePicture);
+        }
+
+        await authService.deleteUser(userId);
         res.status(200).json({ message: "User deleted successfully" });
     } catch (error) {
         next(error);
@@ -141,17 +161,40 @@ export const updateUserController = async (
     res: Response,
     next: NextFunction
 ) => {
+    let uploadedImageUrl = "";
+
     try {
         const authReq = req as AuthRequest;
 
         if (!authReq.user) {
-            return next(new AppError("Usuario no autenticado", 401));
+            return next(new AppError("User not authenticated", 401));
         }
 
         const userId = authReq.user._id.toString();
-        const { name, address, lastName, phone, username } = req.body;
+        const { name, address, lastName, phone, username, deleteProfilePicture } = req.body;
 
         const updates: Record<string, any> = { name, address, lastName, phone, username };
+
+        if (deleteProfilePicture === "true" || deleteProfilePicture === true) {
+            const currentPic = authReq.user.profilePicture;
+            if (currentPic && currentPic.includes("storage.googleapis.com")) {
+                await deleteImageFromFirebase(currentPic);
+            }
+            updates.profilePicture = "https://cdn-icons-png.flaticon.com/512/149/149071.png";
+        }
+        else if (authReq.file) {
+            uploadedImageUrl = await uploadImageToFirebase(
+                authReq.file,
+                "users",
+                username || authReq.user.username || "updated_user"
+            );
+            updates.profilePicture = uploadedImageUrl;
+
+            const currentPic = authReq.user.profilePicture;
+            if (currentPic && currentPic.includes("storage.googleapis.com")) {
+                await deleteImageFromFirebase(currentPic);
+            }
+        }
 
         Object.keys(updates).forEach(
             (key) => updates[key] === undefined && delete updates[key]
@@ -160,7 +203,7 @@ export const updateUserController = async (
         const updatedUser = await authService.updateProfile(
             userId,
             updates,
-            authReq.file
+            undefined
         );
 
         res.status(200).json({
@@ -168,6 +211,7 @@ export const updateUserController = async (
             user: updatedUser,
         });
     } catch (error) {
+        if (uploadedImageUrl) await deleteImageFromFirebase(uploadedImageUrl);
         next(error);
     }
 };
@@ -183,7 +227,7 @@ export const updatePasswordController = async (
         const authReq = req as AuthRequest;
 
         if (!authReq.user) {
-            return next(new AppError("Usuario no autenticado", 401));
+            return next(new AppError("User not authenticated", 401));
         }
 
         const userId = authReq.user._id.toString();
@@ -212,11 +256,11 @@ export const forgotPasswordController = async (
 
         await sendEmail(
             email,
-            "Recuperación de Contraseña - El Camino",
-            `Tu PIN de recuperación es: ${pin}`
+            "Password Recovery - El Camino",
+            `Your recovery PIN is: ${pin}`
         );
 
-        res.json({ message: "Email enviado correctamente con las instrucciones" });
+        res.json({ message: "Email sent successfully with instructions" });
     } catch (error) {
         next(error);
     }
@@ -232,7 +276,7 @@ export const resetPasswordController = async (
         const { pin, password } = req.body;
 
         if (!pin) {
-            return next(new AppError("El PIN es obligatorio", 400));
+            return next(new AppError("PIN is required", 400));
         }
 
         const cleanPin = String(pin).trim();

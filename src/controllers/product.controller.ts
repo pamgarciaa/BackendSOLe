@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
-import fs from "fs-extra";
-import productService from "@/services/product.service";
-import AppError from "@/utils/appError.util";
+import productService from "../services/product.service";
+import AppError from "../utils/appError.util";
+import { uploadImageToFirebase, deleteImageFromFirebase } from "../utils/firebaseStorage.util";
 
 interface AuthRequest extends Request {
     user?: {
@@ -23,6 +23,7 @@ export const createProductController = async (
     next: NextFunction
 ) => {
     const authReq = req as AuthRequest;
+    let uploadedImageUrl = "";
 
     try {
         const {
@@ -44,6 +45,12 @@ export const createProductController = async (
             return next(new AppError("Usuario no autenticado", 401));
         }
 
+        uploadedImageUrl = await uploadImageToFirebase(
+            authReq.file,
+            "products",
+            name || "product"
+        );
+
         let parsedFeatures: string[] = [];
         if (typeof features === "string") {
             parsedFeatures = features.split(",").map((f: string) => f.trim());
@@ -60,7 +67,7 @@ export const createProductController = async (
             features: parsedFeatures,
             level: level ? Number(level) : undefined,
             isDigital: isDigital === "true" || isDigital === true,
-            image: authReq.file.filename,
+            image: uploadedImageUrl, // Guardamos la URL de Firebase
             createdBy: authReq.user._id as any,
         };
 
@@ -71,7 +78,9 @@ export const createProductController = async (
             data: { product: newProduct },
         });
     } catch (error) {
-        if (authReq.file) await fs.remove(authReq.file.path);
+        if (uploadedImageUrl) {
+            await deleteImageFromFirebase(uploadedImageUrl);
+        }
         next(error);
     }
 };
@@ -126,10 +135,20 @@ export const updateProductController = async (
     next: NextFunction
 ) => {
     const authReq = req as AuthRequest;
+    let uploadedImageUrl = "";
 
     try {
         const { id } = req.params;
-        const newImage = authReq.file ? authReq.file.filename : undefined;
+        let newImage = undefined;
+
+        if (authReq.file) {
+            uploadedImageUrl = await uploadImageToFirebase(
+                authReq.file,
+                "products",
+                req.body.name || "product_updated"
+            );
+            newImage = uploadedImageUrl;
+        }
 
         const updated = await productService.updateProduct(id, req.body, newImage);
 
@@ -138,7 +157,9 @@ export const updateProductController = async (
             data: { product: updated },
         });
     } catch (error) {
-        if (authReq.file) await fs.remove(authReq.file.path);
+        if (uploadedImageUrl) {
+            await deleteImageFromFirebase(uploadedImageUrl);
+        }
         next(error);
     }
 };
@@ -150,6 +171,7 @@ export const deleteProductController = async (
     next: NextFunction
 ) => {
     try {
+
         await productService.deleteProduct(req.params.id);
 
         res.status(200).json({

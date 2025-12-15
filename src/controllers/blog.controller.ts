@@ -1,8 +1,8 @@
 import { Request, Response, NextFunction } from "express";
-import fs from "fs-extra";
 import blogService from "@/services/blog.service";
 import AppError from "@/utils/appError.util";
 import { Types } from "mongoose";
+import { uploadImageToFirebase, deleteImageFromFirebase } from "@/utils/firebaseStorage.util";
 
 interface AuthUser {
     _id: string | Types.ObjectId;
@@ -21,6 +21,7 @@ export const createBlogController = async (
     next: NextFunction
 ) => {
     const authReq = req as AuthRequest;
+    let uploadedImageUrl = "";
 
     try {
         const { title, content } = req.body;
@@ -33,10 +34,16 @@ export const createBlogController = async (
             return next(new AppError("Usuario no autenticado", 401));
         }
 
+        uploadedImageUrl = await uploadImageToFirebase(
+            authReq.file,
+            "blogs",
+            title || "blog"
+        );
+
         const blogData = {
             title,
             content,
-            image: authReq.file.path,
+            image: uploadedImageUrl,
             author: authReq.user._id as any,
         };
 
@@ -44,7 +51,7 @@ export const createBlogController = async (
 
         res.status(201).json({ status: "success", data: { blog: newBlog } });
     } catch (error) {
-        if (authReq.file) await fs.remove(authReq.file.path);
+        if (uploadedImageUrl) await deleteImageFromFirebase(uploadedImageUrl);
         next(error);
     }
 };
@@ -56,6 +63,7 @@ export const editBlogController = async (
     next: NextFunction
 ) => {
     const authReq = req as AuthRequest;
+    let uploadedImageUrl = "";
 
     try {
         const { id } = req.params;
@@ -67,14 +75,20 @@ export const editBlogController = async (
         if (content) updates.content = content;
 
         if (authReq.file) {
-            updates.image = authReq.file.path;
+            uploadedImageUrl = await uploadImageToFirebase(
+                authReq.file,
+                "blogs",
+                title || "blog_updated"
+            );
+            updates.image = uploadedImageUrl;
+
         }
 
         const updatedBlog = await blogService.editBlog(id, updates);
 
         res.status(200).json({ status: "success", data: { blog: updatedBlog } });
     } catch (error) {
-        if (authReq.file) await fs.remove(authReq.file.path);
+        if (uploadedImageUrl) await deleteImageFromFirebase(uploadedImageUrl);
         next(error);
     }
 };
@@ -91,7 +105,7 @@ export const deleteBlogController = async (
         const blog = await blogService.deleteBlog(id);
 
         if (blog && blog.image) {
-            await fs.remove(blog.image);
+            await deleteImageFromFirebase(blog.image);
         }
 
         res

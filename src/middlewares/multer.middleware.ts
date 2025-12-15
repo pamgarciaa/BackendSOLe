@@ -1,10 +1,7 @@
 import { Request } from "express";
 import multer, { FileFilterCallback } from "multer";
-import fs from "fs-extra";
-import path from "path";
-import { AuthRequest } from "./auth.middleware";
 
-// 1. HELPER
+//función helper cleanFileName
 export const cleanFileName = (fileName: string): string => {
     if (!fileName) return "unknown";
     return fileName
@@ -17,45 +14,8 @@ export const cleanFileName = (fileName: string): string => {
         .replace(/^-|-$/g, "");
 };
 
-// 2. FACTORY
 export const createUploadMiddleware = (subfolder: string) => {
-    const finalPath = path.join("uploads", subfolder);
-    fs.ensureDirSync(finalPath);
-
-    const storage = multer.diskStorage({
-        destination: (
-            req: Request,
-            file: Express.Multer.File,
-            cb: (error: Error | null, destination: string) => void
-        ) => {
-            cb(null, finalPath);
-        },
-        filename: (
-            req: Request,
-            file: Express.Multer.File,
-            cb: (error: Error | null, filename: string) => void
-        ) => {
-            let finalName = "file";
-            const authReq = req as AuthRequest;
-
-            if (authReq.user && authReq.user.username) {
-                finalName = authReq.user.username;
-            } else {
-                finalName =
-                    req.body.username || req.body.title || req.body.product || "unknown";
-            }
-
-            const cleanName = cleanFileName(finalName);
-            const uniqueSuffix = Date.now();
-
-            cb(
-                null,
-                `${subfolder}-${cleanName}-${uniqueSuffix}${path.extname(
-                    file.originalname
-                )}`
-            );
-        },
-    });
+    const storage = multer.memoryStorage();
 
     const fileFilter = (
         req: Request,
@@ -72,6 +32,6 @@ export const createUploadMiddleware = (subfolder: string) => {
     return multer({
         storage: storage,
         fileFilter: fileFilter,
-        limits: { fileSize: 1024 * 1024 * 5 },
+        limits: { fileSize: 1024 * 1024 * 5 }, // 5MB
     });
 };
