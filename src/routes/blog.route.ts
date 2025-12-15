@@ -20,7 +20,7 @@ router.post(
     "/",
     protect,
     checkRole("admin", "moderator"),
-    upload.single("blogImage"),
+    upload.single("image"),
     createBlogController
 );
 
@@ -28,7 +28,7 @@ router.patch(
     "/:id",
     protect,
     checkRole("admin", "moderator"),
-    upload.single("blogImage"),
+    upload.single("image"),
     editBlogController
 );
 

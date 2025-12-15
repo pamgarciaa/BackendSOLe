@@ -26,7 +26,7 @@ router.post("/logout", logoutController);
 router.patch(
     "/update",
     protect,
-    upload.single("profilePicture"),
+    upload.single("image"),
     updateUserController
 );
 

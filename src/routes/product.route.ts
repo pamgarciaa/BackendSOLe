@@ -18,7 +18,7 @@ router.post(
     "/",
     protect,
     checkRole("admin", "moderator"),
-    upload.single("productImage"),
+    upload.single("image"),
     createProductController
 );
 
@@ -26,7 +26,7 @@ router.patch(
     "/:id",
     protect,
     checkRole("admin", "moderator"),
-    upload.single("productImage"),
+    upload.single("image"),
     updateProductController
 );
 
