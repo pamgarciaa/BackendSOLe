@@ -30,3 +30,6 @@ export const sendEmail = async (
 
     }
 };
+export const closeTransporter = () => {
+    transporter.close();
+};

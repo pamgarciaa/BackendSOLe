@@ -6,6 +6,8 @@ import Product from "../../models/product.model";
 import Cart from "../../models/cart.model";
 import Order from "../../models/order.model";
 import { connectDB } from "../../config/db.config";
+import { closeTransporter } from "@/utils/email.util";
+
 
 // --- DATOS DE PRUEBA ---
 const mockUser = {
