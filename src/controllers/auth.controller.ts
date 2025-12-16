@@ -1,10 +1,10 @@
 import { Request, Response, NextFunction } from "express";
 import { Types } from "mongoose";
-import authService from "@/services/auth.service";
-import generateToken from "@/utils/generateJwt.util";
-import AppError from "@/utils/appError.util";
-import { sendEmail } from "@/utils/email.util";
-import { uploadImageToFirebase, deleteImageFromFirebase } from "@/utils/firebaseStorage.util";
+import authService from "../services/auth.service";
+import generateToken from "../utils/generateJwt.util";
+import AppError from "../utils/appError.util";
+import { sendEmail } from "../utils/email.util";
+import { uploadImageToFirebase, deleteImageFromFirebase } from "../utils/firebaseStorage.util";
 
 interface IUserResponse {
     _id: string | Types.ObjectId;
@@ -13,7 +13,7 @@ interface IUserResponse {
     lastName: string;
     email: string;
     role: string;
-    profilePicture?: string;
+    image?: string;
     phone?: string;
     address?: string;
 }
@@ -52,7 +52,7 @@ export const registerController = async (
             lastName,
             email,
             password,
-            profilePicture: uploadedImageUrl || undefined,
+            image: uploadedImageUrl || undefined,
         };
 
         const user = await authService.registerUser(userData);
@@ -116,8 +116,8 @@ export const removeUserController = async (
 
         const user = await authService.getUserById(userId);
 
-        if (user && user.profilePicture && user.profilePicture.includes("storage.googleapis.com")) {
-            await deleteImageFromFirebase(user.profilePicture);
+        if (user && user.image && user.image.includes("storage.googleapis.com")) {
+            await deleteImageFromFirebase(user.image);
         }
 
         await authService.deleteUser(userId);
@@ -171,16 +171,16 @@ export const updateUserController = async (
         }
 
         const userId = authReq.user._id.toString();
-        const { name, address, lastName, phone, username, deleteProfilePicture } = req.body;
+        const { name, address, lastName, phone, username, image } = req.body;
 
         const updates: Record<string, any> = { name, address, lastName, phone, username };
 
-        if (deleteProfilePicture === "true" || deleteProfilePicture === true) {
-            const currentPic = authReq.user.profilePicture;
+        if (image === "true" || image === true) {
+            const currentPic = authReq.user.image;
             if (currentPic && currentPic.includes("storage.googleapis.com")) {
                 await deleteImageFromFirebase(currentPic);
             }
-            updates.profilePicture = "https://cdn-icons-png.flaticon.com/512/149/149071.png";
+            updates.image = "https://cdn-icons-png.flaticon.com/512/149/149071.png";
         }
         else if (authReq.file) {
             uploadedImageUrl = await uploadImageToFirebase(
@@ -188,9 +188,9 @@ export const updateUserController = async (
                 "users",
                 username || authReq.user.username || "updated_user"
             );
-            updates.profilePicture = uploadedImageUrl;
+            updates.image = uploadedImageUrl;
 
-            const currentPic = authReq.user.profilePicture;
+            const currentPic = authReq.user.image;
             if (currentPic && currentPic.includes("storage.googleapis.com")) {
                 await deleteImageFromFirebase(currentPic);
             }
@@ -311,7 +311,7 @@ const sendTokenResponse = (user: IUserResponse, statusCode: number, res: Respons
                 lastName: user.lastName,
                 email: user.email,
                 role: user.role,
-                profilePicture: user.profilePicture,
+                image: user.image,
                 phone: user.phone || "",
                 address: user.address || "",
             },

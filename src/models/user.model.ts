@@ -8,7 +8,7 @@ export interface IUser extends Document {
     email: string;
     password: string;
     role: "user" | "moderator" | "admin";
-    profilePicture: string;
+    image: string;
     phone: string;
     address: string;
     resetPin?: string | null;
@@ -55,7 +55,7 @@ const userSchema = new Schema<IUser>(
             enum: ["user", "moderator", "admin"],
             default: "user",
         },
-        profilePicture: {
+        image: {
             type: String,
             default: "https://cdn-icons-png.flaticon.com/512/149/149071.png",
         },
