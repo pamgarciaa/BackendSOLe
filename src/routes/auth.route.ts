@@ -34,7 +34,7 @@ router.get("/all", protect, checkRole("admin"), getAllUsersController);
 router.get("/:id", protect, checkRole("admin"), getUserController);
 router.delete("/:id", protect, checkRole("admin"), removeUserController);
 
-router.put("/updatepassword", protect, updatePasswordController);
+router.patch("/updatepassword", protect, updatePasswordController);
 router.post("/forgotpassword", forgotPasswordController);
 router.post("/resetpassword", resetPasswordController);
 

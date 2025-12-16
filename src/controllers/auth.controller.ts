@@ -223,7 +223,7 @@ export const updatePasswordController = async (
     next: NextFunction
 ) => {
     try {
-        const { password } = req.body;
+        const { currentPassword, newPassword } = req.body;
         const authReq = req as AuthRequest;
 
         if (!authReq.user) {
@@ -232,11 +232,12 @@ export const updatePasswordController = async (
 
         const userId = authReq.user._id.toString();
 
-        if (!password) {
-            return next(new AppError("Password is required", 400));
+        if (!currentPassword || !newPassword) {
+            return next(new AppError("Current password and new password are required", 400));
         }
 
-        await authService.updatePassword(userId, password);
+        await authService.updatePassword(userId, currentPassword, newPassword);
+
         res.json({ message: "Password updated successfully" });
     } catch (error) {
         next(error);

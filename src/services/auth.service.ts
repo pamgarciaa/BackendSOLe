@@ -75,12 +75,19 @@ const getUserById = async (userId: string) => {
 };
 
 // --- UPDATE PASSWORD ---
-const updatePassword = async (userId: string, password: string) => {
-    const user = await User.findById(userId);
+const updatePassword = async (userId: string, currentPassword: string, newPassword: string) => {
+    const user = await User.findById(userId).select("+password");
+
     if (!user) throw new AppError("User not found", 404);
 
-    user.password = password;
+    const isMatch = await user.comparePassword(currentPassword);
+    if (!isMatch) {
+        throw new AppError("La contraseña actual es incorrecta", 401);
+    }
+    user.password = newPassword;
+
     await user.save();
+
     return user;
 };
 
