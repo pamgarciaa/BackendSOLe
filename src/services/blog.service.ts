@@ -1,6 +1,6 @@
 import Blog, { IBlog } from "../models/blog.model";
 import AppError from "../utils/appError.util";
-import { deleteImageFromFirebase } from "@/utils/firebaseStorage.util";
+import { deleteImageFromFirebase } from "../utils/firebaseStorage.util";
 
 // CREATE
 const createBlog = async (blogData: Partial<IBlog>) => {
