@@ -38,33 +38,16 @@ const updateProfile = async (
     const user = await User.findById(userId);
     if (!user) throw new AppError("User not found", 404);
 
-    if (newFile) {
-        updateData.profilePicture = newFile.filename;
-
-        if (
-            user.profilePicture &&
-            !user.profilePicture.includes("default") &&
-            !user.profilePicture.startsWith("http")
-        ) {
-            const oldPath = path.join(
-                __dirname,
-                "../../uploads/users",
-                user.profilePicture
-            );
-
-            if (await fs.pathExists(oldPath)) {
-                await fs.remove(oldPath);
-            }
-        }
-    }
 
     if (updateData.name !== undefined) user.name = updateData.name;
     if (updateData.lastName !== undefined) user.lastName = updateData.lastName;
     if (updateData.username !== undefined) user.username = updateData.username;
     if (updateData.phone !== undefined) user.phone = updateData.phone;
     if (updateData.address !== undefined) user.address = updateData.address;
-    if (updateData.profilePicture !== undefined)
-        user.profilePicture = updateData.profilePicture;
+
+    if (updateData.image !== undefined) {
+        user.image = updateData.image;
+    }
 
     await user.save();
 
