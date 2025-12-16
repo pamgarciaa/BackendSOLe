@@ -119,6 +119,11 @@ export const getBlogController = async (
     next: NextFunction
 ) => {
     try {
+        // Headers Anti-Caché
+        res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+        res.set('Pragma', 'no-cache');
+        res.set('Expires', '0');
+
         const blog = await blogService.getBlogById(req.params.id);
 
         res.status(200).json({ status: "success", data: { blog } });
@@ -134,6 +139,11 @@ export const getAllBlogsController = async (
     next: NextFunction
 ) => {
     try {
+        // Headers Anti-Caché
+        res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+        res.set('Pragma', 'no-cache');
+        res.set('Expires', '0');
+
         const blogs = await blogService.getAllBlogs();
 
         res

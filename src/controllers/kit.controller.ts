@@ -14,6 +14,11 @@ export const getAllKitsController = async (
     next: NextFunction
 ) => {
     try {
+        // Headers Anti-Caché
+        res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+        res.set('Pragma', 'no-cache');
+        res.set('Expires', '0');
+
         const kits = await kitService.getAllKits();
         res.status(200).json({
             status: "success",
@@ -32,6 +37,11 @@ export const getKitByIdController = async (
     next: NextFunction
 ) => {
     try {
+        // Headers Anti-Caché
+        res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+        res.set('Pragma', 'no-cache');
+        res.set('Expires', '0');
+
         const { id } = req.params;
         const kit = await kitService.getKitById(id);
         res.status(200).json({ status: "success", data: { kit } });
@@ -114,7 +124,6 @@ export const updateKitController = async (
         }
 
         const updatedKit = await kitService.updateKit(id, req.body, newImage);
-
 
         res.status(200).json({
             status: "success",
