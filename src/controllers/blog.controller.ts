@@ -1,8 +1,8 @@
 import { Request, Response, NextFunction } from "express";
-import blogService from "@/services/blog.service";
-import AppError from "@/utils/appError.util";
+import blogService from "../services/blog.service";
+import AppError from "../utils/appError.util";
 import { Types } from "mongoose";
-import { uploadImageToFirebase, deleteImageFromFirebase } from "@/utils/firebaseStorage.util";
+import { uploadImageToFirebase, deleteImageFromFirebase } from "../utils/firebaseStorage.util";
 
 interface AuthUser {
     _id: string | Types.ObjectId;
@@ -102,11 +102,7 @@ export const deleteBlogController = async (
     try {
         const { id } = req.params;
 
-        const blog = await blogService.deleteBlog(id);
-
-        if (blog && blog.image) {
-            await deleteImageFromFirebase(blog.image);
-        }
+        await blogService.deleteBlog(id);
 
         res
             .status(200)
