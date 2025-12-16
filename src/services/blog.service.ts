@@ -13,7 +13,11 @@ const editBlog = async (id: string, updates: Partial<IBlog>) => {
     if (!currentBlog) throw new AppError("Blog not found", 404);
 
     if (updates.image && currentBlog.image && currentBlog.image.startsWith("http")) {
-        await deleteImageFromFirebase(currentBlog.image);
+        try {
+            await deleteImageFromFirebase(currentBlog.image);
+        } catch (error) {
+            console.error("Error eliminando imagen antigua de Firebase:", error);
+        }
     }
 
     const blog = await Blog.findByIdAndUpdate(id, updates, {
