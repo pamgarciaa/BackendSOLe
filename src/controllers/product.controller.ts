@@ -96,6 +96,23 @@ export const getAllProductsController = async (
         next(error);
     }
 };
+// --- GET PRODUCT BY ID ---
+export const getProductByIdController = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+) => {
+    try {
+        const product = await productService.getProductById(req.params.id);
+
+        res.status(200).json({
+            status: "success",
+            data: { product },
+        });
+    } catch (error) {
+        next(error);
+    }
+};
 
 // --- UPDATE PRODUCT ---
 export const updateProductController = async (

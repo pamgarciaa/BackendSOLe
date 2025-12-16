@@ -1,6 +1,7 @@
 import { Router } from "express";
 import {
     createProductController,
+    getProductByIdController,
     getAllProductsController,
     updateProductController,
     deleteProductController,
@@ -13,6 +14,7 @@ const router = Router();
 const upload = createUploadMiddleware("products");
 
 router.get("/", getAllProductsController);
+router.get("/:id", getProductByIdController);
 
 router.post(
     "/",

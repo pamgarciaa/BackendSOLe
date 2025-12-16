@@ -12,6 +12,12 @@ const createProduct = async (productData: Partial<IProduct>) => {
 const getAllProducts = async (filter: Filter<IProduct> = {}) => {
     return await Product.find(filter as any);
 };
+//GET PRODUCT BY ID
+const getProductById = async (id: string) => {
+    const product = await Product.findById(id);
+    if (!product) throw new AppError("Product not found", 404);
+    return product;
+}
 
 // UPDATE PRODUCT
 const updateProduct = async (
@@ -55,4 +61,4 @@ const deleteProduct = async (id: string) => {
     return true;
 };
 
-export default { createProduct, getAllProducts, updateProduct, deleteProduct };
+export default { createProduct, getAllProducts, getProductById, updateProduct, deleteProduct };
