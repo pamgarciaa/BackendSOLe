@@ -12,7 +12,9 @@ const addToCart = async (userId: string, productId: string, quantity: number, pr
   }
 
   const itemIndex = cart.items.findIndex(
-    (item) => item.product.toString() === productId
+    (item) =>
+      item.product.toString() === productId &&
+      item.productModel === productModel
   );
 
   if (itemIndex > -1) {
@@ -34,9 +36,20 @@ const addToCart = async (userId: string, productId: string, quantity: number, pr
 
 // GET CART
 const getCart = async (userId: string) => {
-  return await Cart.findOne({ user: userId })
+  const cart = await Cart.findOne({ user: userId })
     .populate("items.product")
     .populate("user", "username");
+
+  if (cart && cart.items) {
+    const validItems = cart.items.filter((item) => item.product != null);
+
+    if (validItems.length !== cart.items.length) {
+      cart.items = validItems;
+      await cart.save();
+    }
+  }
+
+  return cart;
 };
 
 // CHECKOUT
@@ -55,12 +68,10 @@ const checkout = async (userId: string, shippingAddress: string) => {
 
   let emailContent = "<h3>Resumen de tu compra:</h3><ul>";
 
-  for (const item of cart.items) {
-    const product: any = item.product;
+  const validItems = cart.items.filter((item) => item.product != null);
 
-    if (!product) {
-      throw new AppError(`Product not found for item ${item._id}`, 404);
-    }
+  for (const item of validItems) {
+    const product: any = item.product;
 
     const price = product.price;
     const quantity = item.quantity;
@@ -79,8 +90,7 @@ const checkout = async (userId: string, shippingAddress: string) => {
 
   emailContent += `</ul><h3>Total Pagado: €${totalAmount}</h3>`;
   emailContent += `<p>Dirección de envío: ${shippingAddress}</p>`;
-  emailContent += `<p>¡Gracias por tu compra, ${user.name || user.username
-    }!</p>`;
+  emailContent += `<p>¡Gracias por tu compra, ${user.name || user.username}!</p>`;
 
   const order = await Order.create({
     user: userId,
@@ -93,12 +103,16 @@ const checkout = async (userId: string, shippingAddress: string) => {
   cart.items = [];
   await cart.save();
 
-  sendEmail(
-    user.email,
-    `Confirmación de Orden #${order._id}`,
-    `Gracias por tu compra. Total: €${totalAmount}`,
-    emailContent
-  );
+  try {
+    sendEmail(
+      user.email,
+      `Confirmación de Orden #${order._id}`,
+      `Gracias por tu compra. Total: €${totalAmount}`,
+      emailContent
+    );
+  } catch (error) {
+    console.error("Error sending email:", error);
+  }
 
   return order;
 };
@@ -109,13 +123,6 @@ const removeItemFromCart = async (userId: string, productId: string) => {
 
   if (!cart) throw new AppError("Cart not found", 404);
 
-  const itemExists = cart.items.some(
-    (item) => item.product.toString() === productId
-  );
-
-  if (!itemExists) {
-    throw new AppError("Product not found in cart", 404);
-  }
 
   const updatedCart = await Cart.findOneAndUpdate(
     { user: userId },
@@ -124,6 +131,8 @@ const removeItemFromCart = async (userId: string, productId: string) => {
   )
     .populate("items.product")
     .populate("user", "username");
+
+  if (!updatedCart) throw new AppError("Cart not found", 404);
 
   return updatedCart;
 };

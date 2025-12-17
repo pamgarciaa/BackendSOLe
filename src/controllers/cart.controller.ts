@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
-import cartService from "@/services/cart.service";
-import AppError from "@/utils/appError.util";
+import cartService from "../services/cart.service";
+import AppError from "../utils/appError.util";
 
 interface AuthRequest extends Request {
   user?: {
@@ -26,6 +26,11 @@ export const addToCartController = async (
 
     if (!productId || quantity === undefined) {
       return next(new AppError("Product ID and quantity are required", 400));
+    }
+
+    // Validación de Seguridad
+    if (productModel && !['Product', 'Kit'].includes(productModel)) {
+      return next(new AppError("Invalid product model. Must be 'Product' or 'Kit'", 400));
     }
 
     const cart = await cartService.addToCart(
