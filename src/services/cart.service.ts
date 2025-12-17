@@ -4,26 +4,38 @@ import AppError from "../utils/appError.util";
 import { sendEmail } from "../utils/email.util";
 
 // ADD TO CART
-const addToCart = async (userId: string, productId: string, quantity: number, productModel: string) => {
+const addToCart = async (
+  userId: string,
+  productId: string,
+  quantity: number,
+  productModel: string
+) => {
   let cart = await Cart.findOne({ user: userId });
 
   if (!cart) {
     cart = await Cart.create({ user: userId, items: [] });
   }
 
-  const itemIndex = cart.items.findIndex(
-    (item) =>
-      item.product.toString() === productId &&
-      item.productModel === productModel
-  );
+  console.log("Adding to cart:", { userId, productId, quantity, productModel });
+
+  const itemIndex = cart.items.findIndex((item) => {
+    const matchProduct = item.product.toString() === productId;
+    const matchModel = item.productModel === productModel;
+    console.log(
+      `Checking item ${item._id}: ProductMatch=${matchProduct}, ModelMatch=${matchModel} (DB: ${item.productModel} vs Req: ${productModel})`
+    );
+    return matchProduct && matchModel;
+  });
 
   if (itemIndex > -1) {
+    console.log("Item found at index:", itemIndex, "Updating quantity.");
     cart.items[itemIndex].quantity += Number(quantity);
   } else {
+    console.log("Item not found. Adding new item.");
     cart.items.push({
       product: productId,
       quantity: Number(quantity),
-      productModel: productModel
+      productModel: productModel,
     } as any);
   }
 
@@ -90,7 +102,9 @@ const checkout = async (userId: string, shippingAddress: string) => {
 
   emailContent += `</ul><h3>Total Pagado: €${totalAmount}</h3>`;
   emailContent += `<p>Dirección de envío: ${shippingAddress}</p>`;
-  emailContent += `<p>¡Gracias por tu compra, ${user.name || user.username}!</p>`;
+  emailContent += `<p>¡Gracias por tu compra, ${
+    user.name || user.username
+  }!</p>`;
 
   const order = await Order.create({
     user: userId,
@@ -122,7 +136,6 @@ const removeItemFromCart = async (userId: string, productId: string) => {
   const cart = await Cart.findOne({ user: userId });
 
   if (!cart) throw new AppError("Cart not found", 404);
-
 
   const updatedCart = await Cart.findOneAndUpdate(
     { user: userId },
