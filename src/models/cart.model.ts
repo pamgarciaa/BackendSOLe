@@ -3,7 +3,7 @@ import mongoose, { Document, Schema, Model } from "mongoose";
 interface ICartItem {
   product: mongoose.Types.ObjectId;
   quantity: number;
-  productModel: "Product" | "Kit"; // <--- Nuevo campo en la interfaz
+  productModel: "Product" | "Kit";
   _id?: mongoose.Types.ObjectId;
 }
 
@@ -22,13 +22,13 @@ const cartSchema = new Schema<ICart>(
         product: {
           type: mongoose.Schema.Types.ObjectId,
           required: true,
-          refPath: "items.productModel", // <--- Referencia dinámica
+          refPath: "items.productModel",
         },
         productModel: {
           type: String,
           required: true,
           enum: ["Product", "Kit"],
-          default: "Product", // <--- Por defecto Product para compatibilidad
+          default: "Product",
         },
         quantity: { type: Number, default: 1, min: 1 },
       },
